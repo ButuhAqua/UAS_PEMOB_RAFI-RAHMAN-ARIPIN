@@ -1,0 +1,44 @@
+version: '3'
+services:
+  backend_les:
+    build: ./php
+    image: laravel:latest
+    container_name: backend_les
+    hostname: "backend_les"
+    volumes:
+      - ./src:/var/www/html
+      - ./php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+    working_dir: /var/www/html
+    depends_on: 
+      - db_backend
+
+  db_backend:
+    image: mariadb:10.2
+    container_name: db_backend
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "13306:3306"
+    volumes:
+      - ./database/data:/var/lib/mysql
+      - ./conf.d:/etc/mysql/conf.d:ro
+    environment:
+      MYSQL_DATABASE: data_flutter
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ambasing123!
+      MYSQL_ROOT_PASSWORD: ambasing123
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+
+  nginx_les:
+    build: ./nginx
+    image: nginx:latest
+    container_name: nginx_les
+    hostname: "nginx_les"
+    ports:
+      - "80:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend_les
